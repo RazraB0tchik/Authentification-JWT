@@ -1,10 +1,12 @@
 package com.jwt.mainpac.authentification_jwt2.configuration;
 
 import com.jwt.mainpac.authentification_jwt2.filter.FilterJWT;
+import com.jwt.mainpac.authentification_jwt2.filter.FilterProvider;
 import com.jwt.mainpac.authentification_jwt2.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,8 +26,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     UserService userService;
 
-    @Autowired
-    FilterJWT filterJWT;
+    private final FilterProvider filterProvider;
+
+    public SecurityConfig(FilterProvider filterProvider) {
+        this.filterProvider = filterProvider;
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -35,9 +40,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/controller1/getUsers").permitAll()
-                .anyRequest().authenticated();
-//                .and()
-//                .addFilterAfter(filterJWT, UsernamePasswordAuthenticationFilter.class);
+                .antMatchers("/auth/login", "/reg/registrationUser").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .apply(new FilterConfig(filterProvider)); //добавили необходимый api в конфигурацию
 
     }
 
@@ -49,6 +55,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception{
-        authenticationManagerBuilder.userDetailsService(userService);
+        authenticationManagerBuilder.userDetailsService(userService).passwordEncoder(new BCryptPasswordEncoder(10));
     }
 }
