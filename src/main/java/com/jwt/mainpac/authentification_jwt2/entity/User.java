@@ -16,11 +16,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     int id;
 
-    @Column(name = "userName")
+    @Column(name = "user_name")
     String userName;
 
     @NotEmpty
-    @Column(name = "passwordUser")
+    @Column(name = "password_user")
     String passwordUser;
 
     @NotEmpty
@@ -32,6 +32,18 @@ public class User {
 
     @Column(name = "email")
     String email;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "token_id", referencedColumnName = "id")
+    private RefreshToken refreshToken;
+
+    public RefreshToken getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(RefreshToken refreshToken) {
+        this.refreshToken = refreshToken;
+    }
 
     public User(String userName, String passwordUser, String role, Boolean active, String email) {
         this.userName = userName;

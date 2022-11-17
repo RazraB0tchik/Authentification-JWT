@@ -1,6 +1,5 @@
 package com.jwt.mainpac.authentification_jwt2.controller;
 
-import com.jwt.mainpac.authentification_jwt2.dto.AuthentificationDTO;
 import com.jwt.mainpac.authentification_jwt2.dto.RegistrationDTO;
 import com.jwt.mainpac.authentification_jwt2.entity.User;
 import com.jwt.mainpac.authentification_jwt2.filter.FilterProvider;
@@ -8,7 +7,6 @@ import com.jwt.mainpac.authentification_jwt2.repositories.UserRepository;
 import com.jwt.mainpac.authentification_jwt2.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -35,10 +33,11 @@ public class RegistrateController {
             }
             userService.saveNewUser(registrationDTO.getUsername(), registrationDTO.getPassword(), registrationDTO.getEmail());
             String token = filterProvider.createToken(registrationDTO.getUsername(), "USER");
+            System.out.println("success token!");
             Map<Object, Object> responseRegistration= new HashMap<>();
             responseRegistration.put("username", registrationDTO.getUsername());
-            responseRegistration.put("token", token);
-
+            responseRegistration.put("tokenRegistered", token);
+            responseRegistration.put("role", userRepository.findUserByEmail(registrationDTO.getEmail()).getRole());
             return ResponseEntity.ok(responseRegistration);
     }
 }

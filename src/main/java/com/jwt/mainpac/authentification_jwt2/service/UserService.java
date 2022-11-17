@@ -1,7 +1,10 @@
 package com.jwt.mainpac.authentification_jwt2.service;
 
+import com.jwt.mainpac.authentification_jwt2.entity.RefreshToken;
 import com.jwt.mainpac.authentification_jwt2.entity.User;
 import com.jwt.mainpac.authentification_jwt2.entity.UserDetailElement;
+import com.jwt.mainpac.authentification_jwt2.refreshToken.RefreshCreator;
+import com.jwt.mainpac.authentification_jwt2.repositories.RefreshRepository;
 import com.jwt.mainpac.authentification_jwt2.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -21,6 +25,11 @@ public class UserService implements UserDetailsService {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    RefreshRepository refreshRepository;
+
+    @Autowired
+    RefreshCreator refreshCreator;
 
     private Collection<GrantedAuthority> authorities;
 
@@ -44,8 +53,10 @@ public class UserService implements UserDetailsService {
 
     public void saveNewUser(String username, String password, String email){
         String hashPasswrd = new BCryptPasswordEncoder(10).encode(password);
-        User newUSer = new User(username, hashPasswrd, "USER", true, email);
-        userRepository.save(newUSer);
+        User newUser = new User(username, hashPasswrd, "USER", true, email);
+        RefreshToken refreshToken = refreshCreator.createRef();
+        newUser.setRefreshToken(refreshToken);
+        userRepository.save(newUser);
     }
 
 }

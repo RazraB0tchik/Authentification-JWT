@@ -1,10 +1,15 @@
 package com.jwt.mainpac.authentification_jwt2.controller;
 
 import com.jwt.mainpac.authentification_jwt2.dto.AuthentificationDTO;
+import com.jwt.mainpac.authentification_jwt2.entity.RefreshToken;
 import com.jwt.mainpac.authentification_jwt2.entity.User;
 import com.jwt.mainpac.authentification_jwt2.filter.FilterProvider;
+import com.jwt.mainpac.authentification_jwt2.refreshToken.RefreshCreator;
 import com.jwt.mainpac.authentification_jwt2.repositories.UserRepository;
 import com.jwt.mainpac.authentification_jwt2.service.UserService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,38 +28,57 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/auth")
+@RequestMapping(value = "/auth/api")
 public class AuthController {
 
-    @Autowired
-    UserRepository userRepository;
 
-    @Autowired
-    AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
-    @Autowired
-    FilterProvider filterProvider;
+    private final FilterProvider filterProvider;
 
-    @PostMapping(value = "/login")
+    private final UserService userService;
+
+    public AuthController(AuthenticationManager auth, FilterProvider provider, UserService service) {
+        this.authenticationManager=auth;
+        this.filterProvider=provider;
+        this.userService = service;
+    }
+
+        @Autowired
+        UserRepository userRepository;
+//
+//    @Autowired
+//    AuthenticationManager authenticationManager;
+//
+//    @Autowired
+//    FilterProvider filterProvider;
+//
+    @Autowired
+    RefreshCreator refreshCreator;
+
+    @PostMapping( "/login")
     public ResponseEntity login(@RequestBody AuthentificationDTO authentificationDTO){
         try{
-            String email = authentificationDTO.getEmail();
-
-            User user = userRepository.findUserByEmail(email);
+            System.out.println(authentificationDTO.getUsername());
+            String username = authentificationDTO.getUsername();
+            User user = userRepository.findUserByUserName(username);
             if (user==null){
-                throw new UsernameNotFoundException("user with email "+email+" not found");
+                throw new UsernameNotFoundException("user with name "+username+" not found");
             }
-            String username = user.getUserName();
+            refreshCreator.updateRef(user);
             System.out.println(authentificationDTO.getPassword()+" inside authController");
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, authentificationDTO.getPassword()));
 
             System.out.println(SecurityContextHolder.getContext().getAuthentication() + " after userService");
 
+
+
             String token = filterProvider.createToken(username, user.getRole());
 
             Map<Object, Object> response = new HashMap<>();
+            response.put("tokenLogin", token);
             response.put("username", username);
-            response.put("token", token);
+            response.put("role", user.getRole());
 
             return ResponseEntity.ok(response);
         }
