@@ -2,6 +2,7 @@ package com.jwt.mainpac.authentification_jwt2.filter;
 
 import com.jwt.mainpac.authentification_jwt2.entity.RefreshToken;
 import com.jwt.mainpac.authentification_jwt2.entity.User;
+//import com.jwt.mainpac.authentification_jwt2.exceptions.JwtAuthenticationException;
 import com.jwt.mainpac.authentification_jwt2.exceptions.JwtAuthenticationException;
 import com.jwt.mainpac.authentification_jwt2.exceptions.TokenRequiredException;
 import com.jwt.mainpac.authentification_jwt2.repositories.UserRepository;
@@ -47,7 +48,7 @@ public class FilterProvider {
       Date validData = new Date(now.getTime()+expire);
 
       Claims claims = Jwts.claims().setSubject(username);
-      System.out.println(claims);
+      System.out.println(claims.getSubject() + " SUBJECT");
       claims.put("role", role);
 
       return Jwts.builder()
@@ -77,18 +78,28 @@ public class FilterProvider {
   }
 
 
-  public boolean checkRef(String token) throws TokenRequiredException {
+  public boolean checkRef(String token) throws TokenRequiredException, AuthenticationException {
+//        try {
             System.out.println("insideCheckRef");
+            System.out.println(token + " check");
+
             Jws<Claims> claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
             User user = userRepository.findUserByUserName(claims.getBody().getSubject());
             RefreshToken refreshToken = user.getRefreshToken();
 
             System.out.println(refreshToken.getExpiredDate() + "asdasd");
 
-            if(refreshToken.getExpiredDate().before(new Date())){
+            if (refreshToken.getExpiredDate().before(new Date())) {
+                System.out.println("FK its trouble token!!");
                 throw new TokenRequiredException("invalid token refresh");
+            } else {
+                System.out.println("Im normal men!");
+                return true;
             }
-            else return true;
+//        }
+//        catch (AuthenticationException exception){
+//            throw exception;
+//        }
 }
 
   public boolean validate(String token) throws AuthenticationException {

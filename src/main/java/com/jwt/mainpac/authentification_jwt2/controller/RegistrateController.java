@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public class RegistrateController {
     FilterProvider filterProvider;
 
     @PostMapping(value = "/registrationUser")
-    public ResponseEntity registration(@RequestBody RegistrationDTO registrationDTO){
+    public ResponseEntity registration(@Valid @RequestBody RegistrationDTO registrationDTO){
             User user = userRepository.findUserByUserNameOrEmail(registrationDTO.getUsername(), registrationDTO.getEmail());
             if(user!=null){
                 return ResponseEntity.badRequest().body("User with email "+registrationDTO.getEmail()+ " or username "+ registrationDTO.getUsername()+" exist.");
